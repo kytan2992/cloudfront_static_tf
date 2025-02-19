@@ -1,2 +1,3 @@
-# terraform_template
-Template directory for creating Terraform
+cloudfront_static_tf
+Terraform code for creating static website with S3 bucket and using CloudFront
+
