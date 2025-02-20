@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket = "ky-s3-terraform"
-    key    = "ky-tf-fill-here.tfstate"
+    key    = "ky-tf-cloudfront-tf.tfstate"
     region = "us-east-1"
   }
 }
