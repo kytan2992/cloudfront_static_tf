@@ -3,13 +3,17 @@ locals {
   bucket_name     = "${local.resource_prefix}-s3.sctp-sandbox.com"
 }
 
-### RUN THIS ALONE FIRST TO CREATE EMPTY BUCKET THEN AWS SYNC IN OBJECTS ####
 resource "aws_s3_bucket" "static_bucket" {
   bucket        = local.bucket_name
   force_destroy = true
 }
 
-### THEN DO THE REST ####
+resource "aws_s3_object" "example" {
+  for_each = fileset("./static-website-example", "**/*")
+  bucket   = aws_s3_bucket.static_bucket.bucket
+  key      = each.key
+  source   = "./static-website-example/${each.value}"
+}
 
 resource "aws_s3_bucket_policy" "name" {
   bucket = aws_s3_bucket.static_bucket.id
@@ -47,19 +51,22 @@ resource "aws_cloudfront_distribution" "cloudfront" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
+  comment             = "CloudFront distribution for KY using Terraform"
 
   aliases = [local.bucket_name]
 
   web_acl_id = aws_wafv2_web_acl.waf_acl.arn
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
     target_origin_id       = aws_s3_bucket.static_bucket.id
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
     compress               = true
   }
+
+  price_class = "PriceClass_200"
 
   restrictions {
     geo_restriction {
@@ -86,7 +93,7 @@ resource "aws_route53_record" "dns_bucket" {
   alias {
     name                   = aws_cloudfront_distribution.cloudfront.domain_name
     zone_id                = aws_cloudfront_distribution.cloudfront.hosted_zone_id
-    evaluate_target_health = false
+    evaluate_target_health = true
   }
 }
 

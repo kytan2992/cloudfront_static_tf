@@ -24,3 +24,8 @@ data "aws_iam_policy_document" "s3_policy" {
 data "aws_route53_zone" "sctp_zone" {
   name = "sctp-sandbox.com"
 }
+
+# data "local_file" "files" {
+#   for_each = fileset("./static-website-example/", "**/*")  # Will grab all files recursively
+#   //filename = each.value
+# }
